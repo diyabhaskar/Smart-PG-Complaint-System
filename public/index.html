@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Smart PG Complaint System</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+  <h1>Smart PG & Hostel Complaint System</h1>
+
+  <p class="subtitle">
+    A simple platform for students and PG residents to report issues.
+  </p>
+
+  <div class="form-card">
+    <h2>Raise a Complaint</h2>
+
+    <form onsubmit="addComplaint(event)">
+      <label>Your Name</label>
+      <input type="text" id="name" placeholder="Enter your name" required>
+
+      <label>Describe Issue</label>
+      <input type="text" id="issue" placeholder="e.g., Water leakage" required>
+
+      <label>Select Category</label>
+      <select id="category" required>
+        <option value="" disabled selected>Select Category</option>
+        <option value="Food">Food</option>
+        <option value="Maintenance">Maintenance</option>
+        <option value="Water">Water</option>
+        <option value="Cleanliness">Cleanliness</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <p class="hint">* Please provide accurate details</p>
+
+      <button type="submit">Submit Complaint</button>
+    </form>
+  </div>
+
+  <div id="data" class="card-container"></div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

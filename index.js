@@ -1,47 +1,57 @@
 const express = require('express');
 const { MongoClient } = require('mongodb');
-const cors = require('cors'); 
+const cors = require('cors');
+const path = require('path');
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 app.use(express.json());
-app.use(cors()); 
+app.use(cors());
+app.use(express.static(path.join(__dirname, 'public')));
 
-// 1. Connection string using User: DiyaBhaskar
 const uri = "mongodb://DiyaBhaskar:iamdiya77@ac-vtkoslm-shard-00-00.sbl4w9w.mongodb.net:27017,ac-vtkoslm-shard-00-01.sbl4w9w.mongodb.net:27017,ac-vtkoslm-shard-00-02.sbl4w9w.mongodb.net:27017/student?ssl=true&replicaSet=atlas-19761l-shard-0&authSource=admin&retryWrites=true&w=majority";
 
 const client = new MongoClient(uri);
+let db;
 
-async function connectDB() {
+async function startServer() {
     try {
+        console.log("Attempting to connect to MongoDB...");
         await client.connect();
-        console.log("✅ Successfully connected to Atlas as user: DiyaBhaskar");
+        db = client.db("student");
+        console.log("Connected to MongoDB");
+
+        app.listen(port, () => {
+            console.log(`Server running on port ${port}`);
+        });
     } catch (err) {
-        console.error("❌ MongoDB Connection Error:", err);
+        console.error("DATABASE ERROR:", err.message);
+        process.exit(1);
     }
 }
-connectDB();
 
-// --- ROUTES ---
+startServer();
 
 app.post('/api/complaints', async (req, res) => {
+    if (!db) {
+        return res.status(503).json({ error: "Database not ready yet" });
+    }
     try {
-        const database = client.db("student"); 
-        const collection = database.collection("complaints");
+        const collection = db.collection("complaints");
+        const { name, issue, category } = req.body;
 
-        const newComplaint = {
-            name: req.body.name,
-            issue: req.body.issue,
-            category: req.body.category,
-            date: new Date(),
-            // This now takes the name from the form input
-            submittedBy: req.body.name 
-        };
+        const result = await collection.insertOne({
+            name,
+            issue,
+            category,
+            date: new Date()
+        });
 
-        const result = await collection.insertOne(newComplaint);
-        res.status(201).json({ message: "Saved to student database!", id: result.insertedId });
+        console.log("Complaint saved:", result.insertedId);
+        res.status(201).json({ message: "Saved successfully", id: result.insertedId });
     } catch (error) {
-        res.status(500).json({ error: "Failed to save" });
+        console.error("Insert Error:", error);
+        res.status(500).json({ error: "Failed to save to database" });
     }
 });
